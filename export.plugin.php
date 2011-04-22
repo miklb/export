@@ -316,7 +316,9 @@
 					$c->addAttribute( 'user-url', $comment->url );
 					
 					$c->addChild( 'title' );
-					$c->addChild( 'content', $comment->content )->addAttribute( 'type', 'text' );
+					
+					$content = $c->content = $comment->content;
+					$content['type'] = 'text';
 					
 				}
 				
