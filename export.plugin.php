@@ -112,7 +112,8 @@
 			Plugins::act('export_run_before');
 			
 			$export = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><blog xmlns="http://schemas.habariproject.org/BlogML.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" />' );
-			$export->addAttribute( 'root-url', Site::get_url('habari') );
+			$export->addAttribute( 'root-url', Site::get_path('habari', true) );
+			$export->addAttribute( 'date-created', HabariDateTime::date_create()->format( DateTime::W3C ) );
 			
 			$export->addChild( 'title', Options::get('title') )->addAttribute( 'type', 'text' );
 			$export->addChild( 'sub-title', Options::get('tagline') )->addAttribute( 'type', 'text' );
