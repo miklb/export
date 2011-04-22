@@ -228,8 +228,10 @@
 				
 				$category = $categories->addChild( 'category' );
 				$category->addAttribute( 'id', $tag->id );
-				$category->addAttribute( 'description', $tag->term_display );
-				$category->addChild( 'title', $tag->term )->addAttribute( 'type', 'text' );
+				$category['description'] = $tag->term_display;		// overloading because it needs escaping
+				
+				$category->title = $tag->term;
+				$category->title['type'] = 'text';
 				
 			}
 			
