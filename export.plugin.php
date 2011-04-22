@@ -264,16 +264,25 @@
 				// create the post object
 				$p = $ps->addChild( 'post' );
 				
+				// figure out the type of the post
+				if ( $post->content_type == Post::type( 'entry' ) ) {
+					$type = 'normal';		// blog posts are normal
+				}
+				else {
+					$type = 'article';		// articles are pages, i think
+				}
+				
+				
 				// add all the basic post info
 				$p->addAttribute( 'id', $post->id );
 				$p->addAttribute( 'date-created', $post->pubdate->format('c') );
 				$p->addAttribute( 'date-modified', $post->modified->format('c') );
 				$p->addAttribute( 'approved', $post->status == Post::status('published') ? 'true' : 'false' );
 				$p->addAttribute( 'post-url', $this->format_permalink( $post->permalink ) );
-				$p->addAttribute( 'type', Post::type_name( $post->content_type ) );
 				$p->addChild( 'title', $post->title );
 				$p->addChild( 'content', $post->content );
 				$p->addChild( 'post-name', $post->slug );
+				$p->addAttribute( 'type', $type );
 				
 				// now add the post tags
 				$pt = $p->addChild( 'categories' );
