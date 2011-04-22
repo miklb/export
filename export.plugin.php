@@ -279,10 +279,14 @@
 				$p->addAttribute( 'date-modified', $post->modified->format('c') );
 				$p->addAttribute( 'approved', $post->status == Post::status('published') ? 'true' : 'false' );
 				$p->addAttribute( 'post-url', $this->format_permalink( $post->permalink ) );
-				$p->addChild( 'title', $post->title );
-				$p->addChild( 'content', $post->content );
-				$p->addChild( 'post-name', $post->slug );
 				$p->addAttribute( 'type', $type );
+				
+				// the post title is already being escaped somewhere, so don't use overloading to escape it again
+				$p->addChild( 'title', $post->title );
+				
+				// we use attribute overloading so they get escaped properly
+				$p->content = $post->content;
+				$p->{'post-name'} = $post->slug;
 				
 				// now add the post tags
 				$pt = $p->addChild( 'categories' );
