@@ -44,9 +44,9 @@
 				
 				switch ( $action ) {
 						
-					case _t('Export'):
+					case _t('Export as BlogML'):
 						
-						$this->run(true);
+						$this->run(true, 'blogml');
 						
 						Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
 						
