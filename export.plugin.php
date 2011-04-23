@@ -29,6 +29,7 @@
 				// only users with the proper permission should be allowed to export
 				if ( User::identify()->can('export now') ) {
 					$actions[] = _t('Export');
+					$actions[] = _t('Export as WXR');
 				}
 				
 			}
@@ -46,6 +47,14 @@
 					case _t('Export'):
 						
 						$this->run(true);
+						
+						Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
+						
+						break;
+						
+					case _t('Export as WXR'):
+						
+						$this->run(true, 'wxr');
 						
 						Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
 						
