@@ -116,28 +116,53 @@
 			
 		}
 		
-		public function run ( $download = false ) {
+		public function run ( $download = false, $format = 'blogml' ) {
 			
 			Plugins::act('export_run_before');
 			
-			$export = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><blog xmlns="http://schemas.habariproject.org/BlogML.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" />' );
-			$export->addAttribute( 'root-url', Site::get_path('habari', true) );
-			$export->addAttribute( 'date-created', HabariDateTime::date_create()->format( DateTime::W3C ) );
+			if ( $format == 'blogml' ) {
 			
-			$export->addChild( 'title', Options::get('title') )->addAttribute( 'type', 'text' );
-			$export->addChild( 'sub-title', Options::get('tagline') )->addAttribute( 'type', 'text' );
+				$export = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><blog xmlns="http://schemas.habariproject.org/BlogML.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" />' );
+				$export->addAttribute( 'root-url', Site::get_path('habari', true) );
+				$export->addAttribute( 'date-created', HabariDateTime::date_create()->format( DateTime::W3C ) );
+				
+				$export->addChild( 'title', Options::get('title') )->addAttribute( 'type', 'text' );
+				$export->addChild( 'sub-title', Options::get('tagline') )->addAttribute( 'type', 'text' );
+				
+				// export all the blog's users
+				$this->export_users( $export );
+				
+				// export all the blog's options
+				$this->export_options( $export );
+				
+				// export all the blog's tags
+				$this->export_tags( $export );
+				
+				// export all the blog's posts and pages
+				$this->export_posts( $export, array( 'entry', 'page' ) );
 			
-			// export all the blog's users
-			$this->export_users( $export );
-			
-			// export all the blog's options
-			$this->export_options( $export );
-			
-			// export all the blog's tags
-			$this->export_tags( $export );
-			
-			// export all the blog's posts and pages
-			$this->export_posts( $export, array( 'entry', 'page' ) );
+			}
+			else if ( $format == 'wxr' ) {
+				
+				$export = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:wp="http://wordpress.org/export/1.0/" />');
+				$channel = $export->addChild( 'channel' );
+				
+				$channel->title = Options::get('title');
+				$channel->link = Site::get_url( 'habari' );
+				$channel->description = Options::get( 'tagline' );
+				$channel->pubDate = HabariDateTime::date_create()->format( DateTime::RSS );
+				$channel->generator = 'Habari/' . Version::get_habariversion() . '-Export/' . $this->info->version;
+				$channel->{'wp:wxr_version'} = '1.0';
+				$channel->{'wp_base_site_url'} = Site::get_url( 'host' );
+				$channel->{'wp_base_blog_url'} = Site::get_url( 'habari' );
+				
+				// export all the blog's tags
+				$this->export_tags_wxr( $export );
+				
+				// export all the blog's posts and pages
+				$this->export_posts_wxr( $export, array( 'entry', 'page' ) );
+				
+			}
 			
 			EventLog::log( _t( 'Export completed!' ), 'info', 'export', 'export' );
 			
