@@ -271,6 +271,19 @@
 			
 		}
 		
+		private function export_tags_wxr ( $export ) {
+			
+			$tags = Tags::vocabulary()->get_tree();
+			foreach ( $tags as $tag ) {
+				
+				$t = $export->addChild( 'wp:tag' );
+				$t->{'wp:tag_slug'} = $tag->term;
+				$t->{'wp:tag_name'} = $tag->term_display;
+				
+			}
+			
+		}
+		
 		private function format_permalink ( $url ) {
 			
 			// get the base url to trim off
