@@ -398,68 +398,48 @@
 				$item->{'wp:post_id'} = $post->id;
 				$item->{'wp:post_date'} = $post->pubdate->format( DateTime::ISO8601 );
 				$item->{'wp:post_date_gmt'} = $post->pubdate->set_timezone( 'UTC' )->format( DateTime::ISO8601 );
-				$item->{'wp_comment_status'} = $post->info->comments_disabled ? 'closed' : 'open';
-				
-				return;
-				
-				
-				// figure out the type of the post
-				if ( $post->content_type == Post::type( 'entry' ) ) {
-					$type = 'normal';		// blog posts are normal
-				}
-				else {
-					$type = 'article';		// articles are pages, i think
-				}
-				
-				
-				// add all the basic post info
-				$p->addAttribute( 'id', $post->id );
-				$p->addAttribute( 'date-created', $post->pubdate->format('c') );
-				$p->addAttribute( 'date-modified', $post->modified->format('c') );
-				$p->addAttribute( 'approved', $post->status == Post::status('published') ? 'true' : 'false' );
-				$p->addAttribute( 'post-url', $this->format_permalink( $post->permalink ) );
-				$p->addAttribute( 'type', $type );
-				
-				// the post title is already being escaped somewhere, so don't use overloading to escape it again
-				$p->addChild( 'title', $post->title );
-				
-				// we use attribute overloading so they get escaped properly
-				$p->content = $post->content;
-				$p->{'post-name'} = $post->slug;
-				
-				// now add the post tags
-				$pt = $p->addChild( 'categories' );
+				$item->{'wp:comment_status'} = $post->info->comments_disabled ? 'closed' : 'open';
+				$item->{'wp:ping_status'} = $post->info->comments_disabled ? 'closed' : 'open';
+				$item->{'wp:post_name'} = $post->slug;
+				$item->{'wp:status'} = $post->status == Post::status('published') ? 'published' : 'draft';
+				$item->{'wp:post_parent'} = 0;
+				$item->{'wp:menu_order'} = 0;
+				$item->{'wp:post_type'} = $post->typename;
+				$item->{'wp:post_password'} = '';
 				
 				$tags = $post->tags;
 				foreach ( $tags as $tag ) {
 					
-					$pt->addChild( 'category' )->addAttribute( 'ref', $tag->id );
+					$category = $item->addChild( 'category', $tag->term );
+					$category['domain'] = 'tag';
+					$category['nicename'] = $tag->term_display;
 					
 				}
 				
 				// now add the post comments
 				// @todo add support for trackbacks from the pingback plugin?
-				$pc = $p->addChild( 'comments' );
-				
-				$comments = $post->comments;
-				foreach ( $comments as $comment ) {
+				foreach ( $post->comments as $comment ) {
 					
-					$c = $pc->addChild( 'comment' );
-					$c->addAttribute( 'id', $comment->id );
-					$c->addAttribute( 'date-created', $comment->date->format('c') );
-					$c->addAttribute( 'date-modified', $comment->date->format('c') );
-					$c->addAttribute( 'approved', $comment->status == Comment::STATUS_APPROVED ? 'true' : 'false' );
-					$c->addAttribute( 'user-name', $comment->name );
-					$c->addAttribute( 'user-url', $comment->url );
+					$c = $item->addChild( 'wp:comment' );
+					$c->{'wp:comment_id'} = $comment->id;
+					$c->{'wp:comment_author'} = $comment->name;
+					$c->{'wp:comment_author_email'} = $comment->email;
+					$c->{'wp:comment_author_url'} = $comment->url;
+					$c->{'wp:comment_author_IP'} = $comment->ip;
+					$c->{'wp:comment_date'} = $comment->date->format( DateTime::RSS );
+					$c->{'wp:comment_date_gmt'} = $comment->date->set_timezone( 'UTC' )->format( DateTime::RSS );
+					$c->{'wp:comment_content'} = $comment->content;
+					$c->{'wp:comment_approved'} = $comment->status == Comment::STATUS_APPROVED ? 'true' : 'false';
+					$c->{'wp:comment_type'} = Comment::type_name( $comment->type );
+					$c->{'wp:comment_parent'} = 0;
 					
-					$c->addChild( 'title' );
+					$user = User::get_by_email( $comment->email );
 					
-					$content = $c->content = $comment->content;
-					$content['type'] = 'text';
+					if ( $user ) {
+						$c->{'wp:comment_user_id'} = $user->id;
+					}
 					
 				}
-				
-				$p->addChild( 'authors' )->addChild( 'author' )->addAttribute( 'ref', $post->author->id );
 				
 			}
 			
