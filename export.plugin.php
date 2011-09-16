@@ -194,8 +194,8 @@
 			// clear out anything that may have been output before us and disable the buffer
 			ob_end_clean();
 			
-			header('Content-Type: text/xml');
-			header('Content-disposition: attachment; filename=' . $filename);
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename=' . $filename);
 			
 			echo $xml;
 			
