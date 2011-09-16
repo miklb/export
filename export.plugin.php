@@ -28,7 +28,7 @@
 								
 				// only users with the proper permission should be allowed to export
 				if ( User::identify()->can('export now') ) {
-					$actions[] = _t('Export');
+					$actions[] = _t('Export as BlogML');
 					$actions[] = _t('Export as WXR');
 				}
 				
