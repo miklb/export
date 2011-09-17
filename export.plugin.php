@@ -157,10 +157,10 @@
 				$channel->{'wp_base_blog_url'} = Site::get_url( 'habari' );
 				
 				// export all the blog's tags
-				$this->export_tags_wxr( $export );
+				$this->export_tags_wxr( $channel );
 				
 				// export all the blog's posts and pages
-				$this->export_posts_wxr( $export, array( 'entry', 'page' ) );
+				$this->export_posts_wxr( $channel, array( 'entry', 'page' ) );
 				
 			}
 			
