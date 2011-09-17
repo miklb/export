@@ -330,8 +330,7 @@
 				$p->addAttribute( 'post-url', $this->format_permalink( $post->permalink ) );
 				$p->addAttribute( 'type', $type );
 				
-				// the post title is already being escaped somewhere, so don't use overloading to escape it again
-				$p->addChild( 'title', $post->title );
+				$p->title = $post->title;
 				
 				// we use attribute overloading so they get escaped properly
 				$p->content = $post->content;
