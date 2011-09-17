@@ -401,10 +401,10 @@
 				$item->{'wp:comment_status'} = $post->info->comments_disabled ? 'closed' : 'open';
 				$item->{'wp:ping_status'} = $post->info->comments_disabled ? 'closed' : 'open';
 				$item->{'wp:post_name'} = $post->slug;
-				$item->{'wp:status'} = $post->status == Post::status('published') ? 'published' : 'draft';
+				$item->{'wp:status'} = $post->status == Post::status('published') ? 'publish' : 'draft';
 				$item->{'wp:post_parent'} = 0;
 				$item->{'wp:menu_order'} = 0;
-				$item->{'wp:post_type'} = $post->typename;
+				$item->{'wp:post_type'} = $post->typename == 'entry' ? 'post' : $post->typename;
 				$item->{'wp:post_password'} = '';
 				
 				$tags = $post->tags;
