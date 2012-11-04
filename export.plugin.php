@@ -391,8 +391,7 @@
 				$item->description = '';
 				$item->{'content:encoded'} = $post->content;
 				
-				// the post title is already being escaped somewhere, so don't use overloading to escape it again
-				$item->addChild( 'title', $post->title );
+				$item->title = $post->title;
 				
 				$item->{'wp:post_id'} = $post->id;
 				$item->{'wp:post_date'} = $post->pubdate->format( DateTime::ISO8601 );
