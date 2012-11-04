@@ -4,14 +4,16 @@
 	<license url="http://www.apache.org/licenses/LICENSE-2.0.html">Apache Software License 2.0</license>
 	<url>http://habariproject.org</url>
 	<author url="http://chrismeller.com/">Chris Meller</author>
-	<version>1.0</version>
+	<version>1.1</version>
 	<guid>41f7ab69-dddd-4308-b31e-92f3d1270123</guid>
 	<description><![CDATA[Exports your Habari blog into the BlogML XML format. Includes: Users, Posts, Tags, Comments, and Options.]]></description>
-	<help name="main">
-		<value><![CDATA[
-			<p>If you would like to have your export cron'd and automatically emailed to you, check out the ExportEmailer plugin.</p>
-			<p>If you would like to have your cron'd exports stored perpetually to allow point-in-time snapshot restores, try the ExportSnapshot plugin.</p>
-		]]></value>
+	<help>
+		<value>
+			<![CDATA[
+				<p>If you would like to have your export cron'd and automatically emailed to you, check out the ExportEmailer plugin.</p>
+				<p>If you would like to have your cron'd exports stored perpetually to allow point-in-time snapshot restores, try the ExportSnapshot plugin.</p>
+			]]>
+		</value>
 	</help>
 	<provides>
 		<feature url="http://wiki.habariproject.org/en/feature/blogml_export">BlogML Export</feature>
