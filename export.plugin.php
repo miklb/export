@@ -1,74 +1,53 @@
 <?php
 
+	class SimpleXMLExtended extends SimpleXMLElement
+	{
+		public function addCData($cdata_text)
+		{
+			$node = dom_import_simplexml($this);
+			$no   = $node->ownerDocument;
+			$node->appendChild($no->createCDATASection($cdata_text));
+		}
+	}
+
+
 	class Export extends Plugin {
 		
 		public function action_plugin_activation ( $file = '' ) {
-			
-			if ( Plugins::id_from_file( $file ) == Plugins::id_from_file( __FILE__ ) ) {
-
-				ACL::create_token( 'export now', 'Export the Habari database', 'Export' );
-				
-			}
-			
+			ACL::create_token( 'export now', 'Export the Habari database', 'Export' );
 		}
 		
 		public function action_plugin_deactivation ( $file = '' ) {
-			
-			if ( Plugins::id_from_file( $file ) == Plugins::id_from_file( __FILE__ ) ) {
-				
-				ACL::destroy_token( 'export now' );
-				
-			}
-			
+			ACL::destroy_token( 'export now' );
 		}
 		
 		public function filter_plugin_config ( $actions, $plugin_id ) {
-			
-			if ( $plugin_id == $this->plugin_id() ) {
-								
-				// only users with the proper permission should be allowed to export
-				if ( User::identify()->can('export now') ) {
-					$actions[] = _t('Export as BlogML');
-					$actions[] = _t('Export as WXR');
-				}
-				
+			// only users with the proper permission should be allowed to export
+			if ( User::identify()->can('export now') ) {
+				$actions['export BML'] = _t('Export');
+				$actions['export WXR'] = _t('Export as WXR');
 			}
-			
+
 			return $actions;
-			
 		}
 		
 		public function action_plugin_ui ( $plugin_id, $action ) {
-			
-			if ( $plugin_id == $this->plugin_id() ) {
-				
-				switch ( $action ) {
-						
-					case _t('Export as BlogML'):
-						
-						$this->run(true, 'blogml');
-						
-						Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
-						
-						break;
-						
-					case _t('Export as WXR'):
-						
-						$this->run(true, 'wxr');
-						
-						Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
-						
-						break;
-					
-				}
-				
+			switch ( $action ) {
+				case 'export BML':
+					$this->run(true, 'blogml');
+					Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
+					break;
+
+				case 'export WXR':
+					$this->run(true, 'wxr');
+					Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
+					break;
 			}
-			
 		}
 		
 		/**
 		 * This is the beginnings of a DOM-based export implementation (instead of SimpleXML, as the real one is).
-		 * It got significanlty more difficult than I wanted to deal with, so I didn't worry about it at the time.
+		 * It got significantly more difficult than I wanted to deal with, so I didn't worry about it at the time.
 		 * 
 		 * This was going to be preferred over SimpleXML because SimpleXML doesn't add CDATA blocks.
 		 */
@@ -122,7 +101,7 @@
 			
 			if ( $format == 'blogml' ) {
 			
-				$export = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><blog xmlns="http://schemas.habariproject.org/BlogML.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" />' );
+				$export = new SimpleXMLExtended( '<?xml version="1.0" encoding="utf-8"?><blog xmlns="http://schemas.habariproject.org/BlogML.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" />' );
 				$export->addAttribute( 'root-url', Site::get_path('habari', true) );
 				$export->addAttribute( 'date-created', HabariDateTime::date_create()->format( DateTime::W3C ) );
 				
@@ -144,7 +123,7 @@
 			}
 			else if ( $format == 'wxr' ) {
 				
-				$export = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:wp="http://wordpress.org/export/1.0/" />');
+				$export = new SimpleXMLExtended( '<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:wp="http://wordpress.org/export/1.0/" />');
 				$channel = $export->addChild( 'channel' );
 				
 				$channel->title = Options::get('title');
@@ -157,10 +136,10 @@
 				$channel->{'wp_base_blog_url'} = Site::get_url( 'habari' );
 				
 				// export all the blog's tags
-				$this->export_tags_wxr( $channel );
+				$this->export_tags_wxr( $export );
 				
 				// export all the blog's posts and pages
-				$this->export_posts_wxr( $channel, array( 'entry', 'page' ) );
+				$this->export_posts_wxr( $export, array( 'entry', 'page' ) );
 				
 			}
 			
@@ -194,8 +173,8 @@
 			// clear out anything that may have been output before us and disable the buffer
 			ob_end_clean();
 			
-			header('Content-Type: application/octet-stream');
-			header('Content-Disposition: attachment; filename=' . $filename);
+			header('Content-Type: text/xml');
+			header('Content-disposition: attachment; filename=' . $filename);
 			
 			echo $xml;
 			
@@ -307,7 +286,7 @@
 			
 			$ps = $export->addChild( 'posts' );
 			
-			$posts = Posts::get( array( 'nolimit' => true, 'content_type' => $content_type ) );
+			$posts = Posts::get( array( 'limit' => null, 'content_type' => $content_type ) );
 			foreach ( $posts as $post ) {
 				
 				// create the post object
@@ -330,10 +309,12 @@
 				$p->addAttribute( 'post-url', $this->format_permalink( $post->permalink ) );
 				$p->addAttribute( 'type', $type );
 				
-				$p->title = $post->title;
+				// the post title is already being escaped somewhere, so don't use overloading to escape it again
+				$p->addChild( 'title', $post->title );
 				
 				// we use attribute overloading so they get escaped properly
-				$p->content = $post->content;
+				$p->content = NULL;
+				$p->content->addCData($post->content);
 				$p->{'post-name'} = $post->slug;
 				
 				// now add the post tags
@@ -362,10 +343,10 @@
 					$c->addAttribute( 'user-url', $comment->url );
 					
 					$c->addChild( 'title' );
-					
-					$content = $c->content = $comment->content;
-					$content['type'] = 'text';
-					
+
+					$c->content = NULL;
+					$c->content->addCData($comment->content);
+					$c->content['type'] = 'text';
 				}
 				
 				$p->addChild( 'authors' )->addChild( 'author' )->addAttribute( 'ref', $post->author->id );
@@ -376,7 +357,7 @@
 		
 		private function export_posts_wxr ( $export, $content_type = array( 'entry', 'page' ) ) {
 			
-			$posts = Posts::get( array( 'nolimit' => true, 'content_type' => $content_type ) );
+			$posts = Posts::get( array( 'limit' => null, 'content_type' => $content_type ) );
 			foreach ( $posts as $post ) {
 				
 				// create the item object
@@ -391,7 +372,8 @@
 				$item->description = '';
 				$item->{'content:encoded'} = $post->content;
 				
-				$item->title = $post->title;
+				// the post title is already being escaped somewhere, so don't use overloading to escape it again
+				$item->addChild( 'title', $post->title );
 				
 				$item->{'wp:post_id'} = $post->id;
 				$item->{'wp:post_date'} = $post->pubdate->format( DateTime::ISO8601 );
@@ -399,10 +381,10 @@
 				$item->{'wp:comment_status'} = $post->info->comments_disabled ? 'closed' : 'open';
 				$item->{'wp:ping_status'} = $post->info->comments_disabled ? 'closed' : 'open';
 				$item->{'wp:post_name'} = $post->slug;
-				$item->{'wp:status'} = $post->status == Post::status('published') ? 'publish' : 'draft';
+				$item->{'wp:status'} = $post->status == Post::status('published') ? 'published' : 'draft';
 				$item->{'wp:post_parent'} = 0;
 				$item->{'wp:menu_order'} = 0;
-				$item->{'wp:post_type'} = $post->typename == 'entry' ? 'post' : $post->typename;
+				$item->{'wp:post_type'} = $post->typename;
 				$item->{'wp:post_password'} = '';
 				
 				$tags = $post->tags;
