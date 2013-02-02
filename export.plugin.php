@@ -2,9 +2,10 @@
 
 	class SimpleXMLExtended extends SimpleXMLElement
 	{
-		public function addCData($cdata_text)
+		public function addCData($nodename, $cdata_text)
 		{
-			$node = dom_import_simplexml($this);
+			$this->$nodename = null;
+			$node = dom_import_simplexml($this->$nodename);
 			$no   = $node->ownerDocument;
 			$node->appendChild($no->createCDATASection($cdata_text));
 		}
@@ -313,8 +314,7 @@
 				$p->addChild( 'title', $post->title );
 				
 				// we use attribute overloading so they get escaped properly
-				$p->content = NULL;
-				$p->content->addCData($post->content);
+				$p->addCData('content', $post->content);
 				$p->{'post-name'} = $post->slug;
 				
 				// now add the post tags
@@ -344,8 +344,7 @@
 					
 					$c->addChild( 'title' );
 
-					$c->content = NULL;
-					$c->content->addCData($comment->content);
+					$c->addCData('content', $comment->content);
 					$c->content['type'] = 'text';
 				}
 				
