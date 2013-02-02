@@ -8,6 +8,7 @@
 			$node = dom_import_simplexml($this->$nodename);
 			$no   = $node->ownerDocument;
 			$node->appendChild($no->createCDATASection($cdata_text));
+			return $this->$nodename;
 		}
 	}
 
@@ -45,57 +46,7 @@
 					break;
 			}
 		}
-		
-		/**
-		 * This is the beginnings of a DOM-based export implementation (instead of SimpleXML, as the real one is).
-		 * It got significantly more difficult than I wanted to deal with, so I didn't worry about it at the time.
-		 * 
-		 * This was going to be preferred over SimpleXML because SimpleXML doesn't add CDATA blocks.
-		 */
-		public function run_dom ( ) {
-			
-			ob_end_clean();
-			
-			// test the cache
-			$cache = Cache::set('export_test', 'test');
-			
-			if ( $cache == null ) {
-				// we can't export!
-				EventLog::log( _t( 'Unable to write to the cache, export failed!' ), 'critical', 'export', 'export' );
-				
-				if ( User::identify() ) {
-					Session::error( _t( 'Unable to write to the cache, export failed!' ) );
-				}
-				
-				return false;
-			}
-			
-			$dom = new DOMDocument('1.0', 'utf-8');
-			$dom->formatOutput = true;
-			
-			// create the root blog element
-			$blog = $dom->appendChild( new DOMElement( 'blog' ) );
-			$blog->setAttributeNS( 'http://www.w3.org/2000/xmlns/', 'xmlns', 'http://localhost/blogml.xsd' );
-			$blog->setAttributeNS( 'http://www.w3.org/2000/xmlns/', 'xmlns:xs', 'http://www.w3.org/2001/XMLSchema' );
-			
-			$blog->setAttribute( 'root-url', Site::get_url( 'habari' ) );
-			$blog->setAttribute( 'date-created', HabariDateTime::date_create()->format('c') );
-			
-			$title = $dom->createElement( 'title', '' );
-			$title->setAttribute( 'type', 'text' );		// type attribute is optional
-			$title->appendChild( $dom->createCDATASection( Options::get( 'title' ) ) );
-			
-			$dom->appendChild( $title );
-			
-			$sub_title = $dom->createElement( 'sub-title', '' );
-			$sub_title->appendChild( $dom->createCDATASection( Options::get( 'tagline' ) ) );
-			
-			echo $dom->saveXML();
-			
-			die();
-			
-		}
-		
+
 		public function run ( $download = false, $format = 'blogml' ) {
 			
 			Plugins::act('export_run_before');
@@ -106,8 +57,8 @@
 				$export->addAttribute( 'root-url', Site::get_path('habari', true) );
 				$export->addAttribute( 'date-created', HabariDateTime::date_create()->format( DateTime::W3C ) );
 				
-				$export->addChild( 'title', Options::get('title') )->addAttribute( 'type', 'text' );
-				$export->addChild( 'sub-title', Options::get('tagline') )->addAttribute( 'type', 'text' );
+				$export->addCData( 'title', Options::get('title') )->addAttribute( 'type', 'text' );
+				$export->addCData( 'sub-title', Options::get('tagline') )->addAttribute( 'type', 'text' );
 				
 				// export all the blog's users
 				$this->export_users( $export );
@@ -200,7 +151,7 @@
 				$author->addAttribute( 'id', $user->id );
 				$author->addAttribute( 'approved', 'true' );
 				$author->addAttribute( 'email', $user->email );
-				$author->addChild( 'title', $user->displayname )->addAttribute( 'type', 'text' );
+				$author->addCData( 'title', $user->displayname )->addAttribute( 'type', 'text' );
 				
 			}
 			
@@ -244,7 +195,7 @@
 				$category->addAttribute( 'id', $tag->id );
 				$category['description'] = $tag->term_display;		// overloading because it needs escaping
 				
-				$category->title = $tag->term;
+				$category->addCData('title', $tag->term);
 				$category->title['type'] = 'text';
 				
 			}
@@ -311,8 +262,8 @@
 				$p->addAttribute( 'type', $type );
 				
 				// the post title is already being escaped somewhere, so don't use overloading to escape it again
-				$p->addChild( 'title', $post->title );
-				
+				$p->addCData( 'title', $post->title );
+
 				// we use attribute overloading so they get escaped properly
 				$p->addCData('content', $post->content);
 				$p->{'post-name'} = $post->slug;
@@ -372,7 +323,7 @@
 				$item->{'content:encoded'} = $post->content;
 				
 				// the post title is already being escaped somewhere, so don't use overloading to escape it again
-				$item->addChild( 'title', $post->title );
+				$item->addCData( 'title', $post->title );
 				
 				$item->{'wp:post_id'} = $post->id;
 				$item->{'wp:post_date'} = $post->pubdate->format( DateTime::ISO8601 );
