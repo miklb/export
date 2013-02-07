@@ -238,7 +238,7 @@
 			
 			$ps = $export->addChild( 'posts' );
 			
-			$posts = Posts::get( array( 'limit' => null, 'content_type' => $content_type ) );
+			$posts = Posts::get( array( 'nolimit' => 1, 'content_type' => $content_type ) );
 			foreach ( $posts as $post ) {
 				
 				// create the post object
@@ -307,7 +307,7 @@
 		
 		private function export_posts_wxr ( $export, $content_type = array( 'entry', 'page' ) ) {
 			
-			$posts = Posts::get( array( 'limit' => null, 'content_type' => $content_type ) );
+			$posts = Posts::get( array( 'nolimit' => 1, 'content_type' => $content_type ) );
 			foreach ( $posts as $post ) {
 				
 				// create the item object
