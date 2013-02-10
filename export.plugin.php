@@ -277,6 +277,17 @@
 					$pt->addChild( 'category' )->addAttribute( 'ref', $tag->id );
 					
 				}
+
+				// another habari extension -- post info!
+				$properties = $p->addChild( 'extended-properties' );
+
+				foreach ( $post->info->getArrayCopy() as $k => $v ) {
+
+					$property = $properties->addChild( 'property' );
+					$property->addAttribute( 'name', $k );
+					$property->addAttribute( 'value', $v );
+
+				}
 				
 				// now add the post comments
 				// @todo add support for trackbacks from the pingback plugin?
