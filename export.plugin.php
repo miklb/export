@@ -262,10 +262,10 @@
 				$p->addAttribute( 'type', $type );
 				
 				// the post title is already being escaped somewhere, so don't use overloading to escape it again
-				$p->addCData( 'title', $post->title );
+				$p->addCData( 'title', $post->title )->addAttribute( 'type', 'text' );
 
 				// we use attribute overloading so they get escaped properly
-				$p->addCData('content', $post->content);
+				$p->addCData('content', $post->content)->addAttribute( 'type', 'text' );
 				$p->{'post-name'} = $post->slug;
 				
 				// now add the post tags
