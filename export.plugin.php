@@ -303,9 +303,9 @@
 					$c->addAttribute( 'approved', $comment->status == Comment::STATUS_APPROVED ? 'true' : 'false' );
 					$c->addAttribute( 'user-name', $comment->name );
 					$c->addAttribute( 'user-url', $comment->url );
+					$c->addAttribute( 'user-email', $comment->email );
 
 					// these are habari extensions to BlogML
-					$c->addAttribute( 'user-email', $comment->email );
 					$c->addAttribute( 'user-ip', $comment->ip );
 					$c->addAttribute( 'type', $comment->typename );
 					$c->addAttribute( 'status', $comment->statusname );
