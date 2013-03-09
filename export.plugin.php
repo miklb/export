@@ -285,6 +285,9 @@
 
 					$property = $properties->addChild( 'property' );
 					$property->addAttribute( 'name', $k );
+					if( is_array( $v ) ) {
+					    $v = serialize( $v );
+					}
 					$property->addAttribute( 'value', $v );
 
 				}
