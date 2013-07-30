@@ -88,10 +88,10 @@
 				$channel->{'wp_base_blog_url'} = Site::get_url( 'habari' );
 				
 				// export all the blog's tags
-				$this->export_tags_wxr( $export );
+				$this->export_tags_wxr( $channel );
 				
 				// export all the blog's posts and pages
-				$this->export_posts_wxr( $export, array( 'entry', 'page' ) );
+				$this->export_posts_wxr( $channel, array( 'entry', 'page' ) );
 				
 			}
 			
@@ -246,7 +246,7 @@
 				
 				// figure out the type of the post
 				if ( $post->content_type == Post::type( 'entry' ) ) {
-					$type = 'normal';		// blog posts are normal
+					$type = 'post';		// blog posts are normal
 				}
 				else {
 					$type = 'article';		// articles are pages, i think
@@ -349,7 +349,7 @@
 				$item->{'wp:comment_status'} = $post->info->comments_disabled ? 'closed' : 'open';
 				$item->{'wp:ping_status'} = $post->info->comments_disabled ? 'closed' : 'open';
 				$item->{'wp:post_name'} = $post->slug;
-				$item->{'wp:status'} = $post->status == Post::status('published') ? 'published' : 'draft';
+				$item->{'wp:status'} = $post->status == Post::status('published') ? 'publish' : 'draft';
 				$item->{'wp:post_parent'} = 0;
 				$item->{'wp:menu_order'} = 0;
 				$item->{'wp:post_type'} = $post->typename;
