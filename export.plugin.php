@@ -246,7 +246,7 @@
 				
 				// figure out the type of the post
 				if ( $post->content_type == Post::type( 'entry' ) ) {
-					$type = 'post';		// blog posts are normal
+					$type = 'normal';		// blog posts are normal
 				}
 				else {
 					$type = 'article';		// articles are pages, i think
@@ -352,7 +352,7 @@
 				$item->{'wp:status'} = $post->status == Post::status('published') ? 'publish' : 'draft';
 				$item->{'wp:post_parent'} = 0;
 				$item->{'wp:menu_order'} = 0;
-				$item->{'wp:post_type'} = $post->typename;
+				$item->{'wp:post_type'} = ($post->typename == "entry" ? "post" : $post->typename);
 				$item->{'wp:post_password'} = '';
 				
 				$tags = $post->tags;
