@@ -207,7 +207,7 @@
 			$tags = Tags::vocabulary()->get_tree();
 			foreach ( $tags as $tag ) {
 				
-				$t = $export->channel->addChild( 'wp:tag' );
+				$t = $export->addChild( 'wp:tag' );
 				$t->{'wp:tag_slug'} = $tag->term;
 				$t->{'wp:tag_name'} = $tag->term_display;
 				
@@ -329,7 +329,7 @@
 			foreach ( $posts as $post ) {
 				
 				// create the item object
-				$item = $export->channel->addChild( 'item' );
+				$item = $export->addChild( 'item' );
 				
 				// add all the basic post info
 				$item->id = $post->id;
