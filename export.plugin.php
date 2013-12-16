@@ -84,8 +84,8 @@
 				$channel->pubDate = HabariDateTime::date_create()->format( DateTime::RSS );
 				$channel->generator = 'Habari/' . Version::get_habariversion() . '-Export/' . $this->info->version;
 				$channel->{'wp:wxr_version'} = '1.0';
-				$channel->{'wp_base_site_url'} = Site::get_url( 'host' );
-				$channel->{'wp_base_blog_url'} = Site::get_url( 'habari' );
+				$channel->{'wp:base_site_url'} = Site::get_url( 'host' );
+				$channel->{'wp:base_blog_url'} = Site::get_url( 'habari' );
 				
 				// export all the blog's tags
 				$this->export_tags_wxr( $channel );
