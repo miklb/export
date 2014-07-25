@@ -375,7 +375,7 @@
 				foreach ( $tags as $tag ) {
 
 					$category = $item->addChild( 'category', $tag->term );
-					$category['domain'] = 'tag';
+					$category['domain'] = 'post_tag';
 					$category['nicename'] = $tag->term_display;
 
 				}
