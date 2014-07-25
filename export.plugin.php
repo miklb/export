@@ -75,7 +75,7 @@
 			}
 			else if ( $format == 'wxr' ) {
 
-				$export = new SimpleXMLExtended( '<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:wp="http://wordpress.org/export/1.0/" />');
+				$export = new SimpleXMLExtended( '<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:wp="http://wordpress.org/export/1.2/" />');
 				$channel = $export->addChild( 'channel' );
 
 				$channel->title = Options::get('title');
@@ -162,10 +162,10 @@
 		private function export_user_wxr( $export ) {
 			$users = Users::get();
 			foreach ( $users as $user ) {
-				$author = $export->addChild( 'wp:author' );
-				$author->{'wp:author_login'} = $user->username;
-				$author->{'wp:author_email'} = $user->email;
-				$author->{'wp:author_display_name'} = $user->displayname;
+				$author = $export->addChild( 'wp:author', null, 'http://wordpress.org/export/1.2/' );
+				$author->{'author_login'} = $user->username;
+				$author->{'author_email'} = $user->email;
+				$author->{'author_display_name'} = $user->displayname;
 			}
 		}
 
@@ -219,9 +219,9 @@
 			$tags = Tags::vocabulary()->get_tree();
 			foreach ( $tags as $tag ) {
 
-				$t = $export->addChild( 'wp:tag' );
-				$t->{'wp:tag_slug'} = $tag->term;
-				$t->{'wp:tag_name'} = $tag->term_display;
+				$t = $export->addChild( 'wp:tag', null, 'http://wordpress.org/export/1.2/' );
+				$t->{'tag_slug'} = $tag->term;
+				$t->{'tag_name'} = $tag->term_display;
 
 			}
 
