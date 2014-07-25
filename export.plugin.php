@@ -130,8 +130,12 @@
 			header('Content-Type: text/xml');
 			header('Content-disposition: attachment; filename=' . $filename);
 
-			echo $xml;
-
+			// Pretty print the XML - makes for easier debugging
+			$dom = new DOMDocument("1.0");
+			$dom->preserveWhiteSpace = false;
+			$dom->formatOutput = true;
+			$dom->loadXML( $xml );
+			echo $dom->saveXML();
 			die();
 
 		}
