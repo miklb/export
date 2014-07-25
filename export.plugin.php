@@ -86,9 +86,9 @@
 				$channel->{'wp:wxr_version'} = '1.0';
 				$channel->{'wp:base_site_url'} = Site::get_url( 'host' );
 				$channel->{'wp:base_blog_url'} = Site::get_url( 'habari' );
-				// set the author information - assumes we only have one author
+				// export all authors
 				$this->export_user_wxr( $channel );
-				
+
 				// export all the blog's tags
 				$this->export_tags_wxr( $channel );
 
@@ -160,11 +160,13 @@
 		}
 
 		private function export_user_wxr( $export ) {
-			$author = $export->addChild( 'wp:author' );
 			$users = Users::get();
-			$author->{'wp:author_login'} = $users[0]->username;
-			$author->{'wp:author_email'} = $users[0]->email;
-			$author->{'wp:author_display_name'} = $users[0]->displayname;
+			foreach ( $users as $user ) {
+				$author = $export->addChild( 'wp:author' );
+				$author->{'wp:author_login'} = $user->username;
+				$author->{'wp:author_email'} = $user->email;
+				$author->{'wp:author_display_name'} = $user->displayname;
+			}
 		}
 
 		/**
