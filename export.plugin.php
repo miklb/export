@@ -87,7 +87,7 @@
 				$channel->{'wp:base_site_url'} = Site::get_url( 'host' );
 				$channel->{'wp:base_blog_url'} = Site::get_url( 'habari' );
 				// export all authors
-				$this->export_user_wxr( $channel );
+				$this->export_users_wxr( $channel );
 
 				// export all the blog's tags
 				$this->export_tags_wxr( $channel );
@@ -163,7 +163,7 @@
 
 		}
 
-		private function export_user_wxr( $export ) {
+		private function export_users_wxr( $export ) {
 			$users = Users::get();
 			foreach ( $users as $user ) {
 				$author = $export->addChild( 'wp:author', null, 'http://wordpress.org/export/1.2/' );
