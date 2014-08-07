@@ -15,6 +15,7 @@
 
 	class Export extends Plugin {
 
+		static $version = 1.2;
 		public function action_plugin_activation ( $file = '' ) {
 			ACL::create_token( 'export now', 'Export the Habari database', 'Export' );
 		}
@@ -26,28 +27,42 @@
 		public function filter_plugin_config ( $actions, $plugin_id ) {
 			// only users with the proper permission should be allowed to export
 			if ( User::identify()->can('export now') ) {
-				$actions['export BML'] = _t('Export');
-				$actions['export WXR'] = _t('Export as WXR');
+				$actions['export'] = _t( 'Export' );
 			}
 
 			return $actions;
 		}
 
-		public function action_plugin_ui ( $plugin_id, $action ) {
-			switch ( $action ) {
-				case 'export BML':
-					$this->run(true, 'blogml');
-					Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
-					break;
-
-				case 'export WXR':
-					$this->run(true, 'wxr');
-					Utils::redirect( URL::get( 'admin', 'page=plugins' ) );
-					break;
+		public function action_plugin_ui_export() {
+			$ui = new FormUI( strtolower( __CLASS__ ) );
+			$ui->append( 'label', 'export_lbl', _t( 'Export format:' ) );
+			$ui->append( 'radio', 'export_fmt', 'null:null', _t( 'Export format:' ), array( 'blogml' => 'BlogML', 'wxr' => 'WordPress eXtended RSS (WXR)')  );
+			$ui->append( 'label', 'post_types_lbl', _t( 'Post types to export:') );
+			$all_types = Post::list_all_post_types();
+			array_shift( $all_types );
+			foreach( $all_types as $key => $value ) {
+				$ui->append( 'checkbox', "types_${key}", 'null:null', _t( ucfirst( $key ) ) );
 			}
+
+			$ui->append( 'submit', 'save', _t( 'Export' ) );
+			$ui->on_success( array( $this, 'do_export' ) );
+			$ui->out();
 		}
 
-		public function run ( $download = false, $format = 'blogml' ) {
+		public static function do_export( $ui ) {
+			$fmt = $ui->controls['export_fmt']->value;
+			$all_types = Post::list_all_post_types();
+			array_shift( $all_types );
+			$incl_types = array();
+			foreach( $all_types as $key => $value ) {
+				if ( $ui->controls["types_${key}"]->value ) {
+					$incl_types[] = $key;
+				}
+			}
+			self::run( true, $fmt, $incl_types );
+		}
+
+		public static function run ( $download = false, $format = 'blogml', $types = array( 'entry', 'page' ) ) {
 
 			Plugins::act('export_run_before');
 
@@ -61,16 +76,16 @@
 				$export->addCData( 'sub-title', Options::get('tagline') )->addAttribute( 'type', 'text' );
 
 				// export all the blog's users
-				$this->export_users( $export );
+				self::export_users( $export );
 
 				// export all the blog's options
-				$this->export_options( $export );
+				self::export_options( $export );
 
 				// export all the blog's tags
-				$this->export_tags( $export );
+				self::export_tags( $export );
 
 				// export all the blog's posts and pages
-				$this->export_posts( $export, array( 'entry', 'page' ) );
+				self::export_posts( $export, $types );
 
 			}
 			else if ( $format == 'wxr' ) {
@@ -82,18 +97,18 @@
 				$channel->link = Site::get_url( 'habari' );
 				$channel->description = Options::get( 'tagline' );
 				$channel->pubDate = HabariDateTime::date_create()->format( DateTime::RSS );
-				$channel->generator = 'Habari/' . Version::get_habariversion() . '-Export/' . $this->info->version;
+				$channel->generator = 'Habari/' . Version::get_habariversion() . '-Export/' . self::$version;
 				$channel->{'wp:wxr_version'} = '1.0';
 				$channel->{'wp:base_site_url'} = Site::get_url( 'host' );
 				$channel->{'wp:base_blog_url'} = Site::get_url( 'habari' );
 				// export all authors
-				$this->export_users_wxr( $channel );
+				self::export_users_wxr( $channel );
 
 				// export all the blog's tags
-				$this->export_tags_wxr( $channel );
+				self::export_tags_wxr( $channel );
 
 				// export all the blog's posts and pages
-				$this->export_posts_wxr( $channel, array( 'entry', 'page' ) );
+				self::export_posts_wxr( $channel, $types );
 
 			}
 
@@ -110,7 +125,7 @@
 			$xml = Plugins::filter('export_contents_xml', $xml);
 
 			if ( $download ) {
-				$this->download( $xml );
+				self::download( $xml );
 			}
 			else {
 				return $xml;
@@ -118,7 +133,7 @@
 
 		}
 
-		private function download ( $xml ) {
+		private static function download ( $xml ) {
 
 			$timestamp = HabariDateTime::date_create('now')->format('YmdHis');
 
@@ -146,7 +161,7 @@
 		 * @param SimpleXMLElement $export The SimpleXML element we're using for our export.
 		 * @return void
 		 */
-		private function export_users( $export ) {
+		private static function export_users( $export ) {
 
 			$authors = $export->addChild( 'authors' );
 
@@ -163,7 +178,7 @@
 
 		}
 
-		private function export_users_wxr( $export ) {
+		private static function export_users_wxr( $export ) {
 			$users = Users::get();
 			foreach ( $users as $user ) {
 				$author = $export->addChild( 'wp:author', null, 'http://wordpress.org/export/1.2/' );
@@ -179,7 +194,7 @@
 		 * @param SimpleXMLElement $export The SimpleXML element we're using for our export.
 		 * @return void
 		 */
-		private function export_options ( $export ) {
+		private static function export_options ( $export ) {
 
 			$properties = $export->addChild( 'extended-properties' );
 
@@ -200,7 +215,7 @@
 		 * @param SimpleXMLElement $export The SimpleXML element we're using for our export.
 		 * @return void
 		 */
-		private function export_tags ( $export ) {
+		private static function export_tags ( $export ) {
 
 			$categories = $export->addChild( 'categories' );
 
@@ -218,7 +233,7 @@
 
 		}
 
-		private function export_tags_wxr ( $export ) {
+		private static function export_tags_wxr ( $export ) {
 
 			$tags = Tags::vocabulary()->get_tree();
 			foreach ( $tags as $tag ) {
@@ -231,7 +246,7 @@
 
 		}
 
-		private function format_permalink ( $url ) {
+		private static function format_permalink ( $url ) {
 
 			// get the base url to trim off
 			$base_url = Site::get_url( 'habari' );
@@ -250,7 +265,7 @@
 		 * @param SimpleXMLElement $export The SimpleXML element we're using for our export.
 		 * @return void
 		 */
-		private function export_posts ( $export, $content_type = array( 'entry', 'page' ) ) {
+		private static function export_posts ( $export, $content_type = array( 'entry', 'page' ) ) {
 
 			$ps = $export->addChild( 'posts' );
 
@@ -339,7 +354,7 @@
 
 		}
 
-		private function export_posts_wxr ( $export, $content_type = array( 'entry', 'page' ) ) {
+		private static function export_posts_wxr ( $export, $content_type = array( 'entry', 'page' ) ) {
 
 			$posts = Posts::get( array( 'nolimit' => 1, 'content_type' => $content_type ) );
 			foreach ( $posts as $post ) {
